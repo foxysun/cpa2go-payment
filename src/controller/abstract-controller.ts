@@ -1,4 +1,4 @@
-import { APIGatewayProxyEventV2 } from 'aws-lambda';
+import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { success } from '../utils/http-response';
 
 abstract class AbstractController {
@@ -8,7 +8,7 @@ abstract class AbstractController {
     this.event = event;
   }
 
-  public main(): any {
+  public main(): APIGatewayProxyResultV2 {
     return success({ message: 'All Good 1', event: this.event });
   }
 }

@@ -1,5 +1,6 @@
 import * as sst from '@serverless-stack/resources';
 import ApiStack from './ApiStack';
+import SubscriptionTableStack from './dynamodb/subscription-table';
 
 export default function main(app: sst.App): void {
   // Set default runtime for all functions
@@ -7,7 +8,13 @@ export default function main(app: sst.App): void {
     runtime: 'nodejs12.x'
   });
 
-  new ApiStack(app, 'main-api-stack');
+  const subscriptionDB: SubscriptionTableStack = new SubscriptionTableStack(app, 'dynamodb-table-subscription');
+
+  new ApiStack(app, 'main-api-stack', {
+    db: {
+      subscription: subscriptionDB.table
+    }
+  });
 
   // Add more stacks
 }
