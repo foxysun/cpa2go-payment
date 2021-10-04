@@ -14,8 +14,9 @@
     "@types/aws-lambda": "^8.10.70"
   },
   "dependencies": {
+    "@aws-cdk/core": "1.124.0",
     "@serverless-stack/cli": "0.44.1",
     "@serverless-stack/resources": "0.44.1",
-    "@aws-cdk/core": "1.124.0"
+    "lodash": "^4.17.21"
   }
 }
