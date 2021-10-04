@@ -6,7 +6,7 @@ type ResponseBody = {
   [key: string]: any;
 }
 
- const _buildResponse = (statusCode: number, body: ResponseBody, contentType: string): APIGatewayProxyResultV2 => {
+const _buildResponse = (statusCode: number, body: ResponseBody, contentType: string): APIGatewayProxyResultV2 => {
   return {
     statusCode,
     headers: {

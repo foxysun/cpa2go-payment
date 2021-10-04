@@ -1,4 +1,5 @@
 import * as sst from '@serverless-stack/resources';
+import { CorsHttpMethod } from '@aws-cdk/aws-apigatewayv2';
 
 type DBProps = {
   subscription: sst.Table;
@@ -14,13 +15,15 @@ export default class ApiStack extends sst.Stack {
     
     const { db }: ApiStackProps = props;
     const { subscription }: DBProps = db;
-    console.log(subscription);
     // Create a HTTP API
     const api = new sst.Api(this, 'MainApi', {
       defaultFunctionProps: {
         environment: {
           SUBSCRIPTION_TABLE_NAME: subscription.tableName,
         },
+      },
+      cors: {
+        allowMethods: [CorsHttpMethod.ANY],
       },
       routes: {
         'ANY /rest/subscription': 'src/handler.subscriptionHandler',
