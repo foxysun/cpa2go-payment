@@ -21,7 +21,9 @@ export default class ApiStack extends sst.Stack {
       defaultFunctionProps: {
         environment: {
           SUBSCRIPTION_TABLE_NAME: subscription.tableName,
-          SUBSCRIBER_TABLE_NAME: subscriber.tableName
+          SUBSCRIBER_TABLE_NAME: subscriber.tableName,
+          API_KEY_MIDDLE: process.env.API_KEY_MIDDLE,
+          PHP_API_SERVER: process.env.PHP_API_SERVER
         },
       },
       cors: {
@@ -30,7 +32,8 @@ export default class ApiStack extends sst.Stack {
       routes: {
         'ANY /rest/subscription': 'src/handler.subscriptionHandler',
         'ANY /rest/subscription/{id}': 'src/handler.subscriptionHandler',
-        'POST /rest/subscriber/begin-subscription/{userId}': 'src/handler.beginSubscription'
+        'POST /rest/subscriber/begin-subscription/{userId}': 'src/handler.beginSubscription',
+        'GET /proxy/user': 'src/handler.userProxyHandler'
       },
     });
 
