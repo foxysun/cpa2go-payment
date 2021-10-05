@@ -30,7 +30,7 @@ export default class ApiStack extends sst.Stack {
       routes: {
         'ANY /rest/subscription': 'src/handler.subscriptionHandler',
         'ANY /rest/subscription/{id}': 'src/handler.subscriptionHandler',
-        'POST /rest/subscriber/begin-subscription/{email}': 'src/handler.beginSubscription'
+        'POST /rest/subscriber/begin-subscription/{userId}': 'src/handler.beginSubscription'
       },
     });
 

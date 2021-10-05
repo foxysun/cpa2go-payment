@@ -11,10 +11,10 @@ export default class SubscriptionTableStack extends sst.Stack {
     this.table = new sst.Table(this, 'subscription', {
       fields: {
         receiptId: sst.TableFieldType.STRING,
-        email: sst.TableFieldType.STRING,
+        userId: sst.TableFieldType.STRING,
       },
       primaryIndex: { partitionKey: 'receiptId' },
-      secondaryIndexes: { emailIndex: { partitionKey: 'email' }}
+      secondaryIndexes: { userIdIndex: { partitionKey: 'userId' }}
     });
   }
 }

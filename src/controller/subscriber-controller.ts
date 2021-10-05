@@ -12,11 +12,11 @@ class SubscriberController extends AbstractController {
     return success({ db: process.env.SUBSCRIPTION_TABLE_NAME });
   }
 
-  private async getSubscriber(email: string): Promise<DynamoDB.DocumentClient.GetItemOutput> {
+  private async getSubscriber(userId: string): Promise<DynamoDB.DocumentClient.GetItemOutput> {
     const params: DynamoDB.DocumentClient.GetItemInput = {
       TableName: process.env.SUBSCRIBER_TABLE_NAME as string,
       Key: {
-        email
+        userId
       }
     };
     const result: PromiseResult<DynamoDB.DocumentClient.GetItemOutput, AWSError> = await this.dynamoDB.get(params).promise();
@@ -24,14 +24,14 @@ class SubscriberController extends AbstractController {
     return _get(result, 'Item', {});
   }
 
-  private async putToDB(email: string): Promise<DynamoDB.DocumentClient.PutItemOutput> {
+  private async putToDB(userId: string): Promise<DynamoDB.DocumentClient.PutItemOutput> {
     const expiredDate: Date = new Date();
     expiredDate.setDate(expiredDate.getDate() + 30);
 
     const params: DynamoDB.DocumentClient.PutItemInput = {
       TableName: process.env.SUBSCRIBER_TABLE_NAME as string,
       Item: {
-        email,
+        userId,
         subscribedAt: Date.now(),
         expiredDate: expiredDate.getTime(),
         ...this.body
@@ -43,14 +43,14 @@ class SubscriberController extends AbstractController {
     return params.Item;
   }
 
-  private async updateItemDB(email: string): Promise<DynamoDB.DocumentClient.UpdateItemOutput> {
+  private async updateItemDB(userId: string): Promise<DynamoDB.DocumentClient.UpdateItemOutput> {
     const keys: string[] = _keys(this.body);
     const expiredDate: Date = new Date();
     expiredDate.setDate(expiredDate.getDate() + 30);
     const params: DynamoDB.DocumentClient.UpdateItemInput = {
       TableName: process.env.SUBSCRIBER_TABLE_NAME as string,
       Key: {
-        email
+        userId
       },
       UpdateExpression: `SET ${_map(keys, (key: string): string => `${key} = :${key}`).join(', ')}, subscribedAt = :subscribedAt, expiredDate = :expiredDate`,
       ExpressionAttributeValues: {
@@ -67,22 +67,22 @@ class SubscriberController extends AbstractController {
   }
 
   private async insertToDB(): Promise<APIGatewayProxyResultV2> {
-    const email: string = _get(this.pathParameters, 'email', '');
-    const currentItem = await this.getSubscriber(email);
+    const userId: string = _get(this.pathParameters, 'userId', '');
+    const currentItem = await this.getSubscriber(userId);
 
     if (_isEmpty(currentItem)) {
-      const item = await this.putToDB(email);
+      const item = await this.putToDB(userId);
       return success(item);
     }
 
-    const updator = await this.updateItemDB(email);
+    const updator = await this.updateItemDB(userId);
     return success(updator);
   }
 
   public beginSubscription(): APIGatewayProxyResultV2 | Promise<APIGatewayProxyResultV2> {
-    const email: string = _get(this.pathParameters, 'email', '');
+    const userId: string = _get(this.pathParameters, 'userId', '');
     
-    if (_isEmpty(email) === true || _isEmpty(this.body) === true) {
+    if (_isEmpty(userId) === true || _isEmpty(this.body) === true) {
       return failure({ message: 'Invalid input' }, 400);
     }
 

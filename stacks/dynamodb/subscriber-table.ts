@@ -10,9 +10,9 @@ export default class SubscriberTableStack extends sst.Stack {
     // Create the DynamoDB table
     this.table = new sst.Table(this, 'subscriber', {
       fields: {
-        email: sst.TableFieldType.STRING,
+        userId: sst.TableFieldType.STRING,
       },
-      primaryIndex: { partitionKey: 'email' }
+      primaryIndex: { partitionKey: 'userId' }
     });
   }
 }
