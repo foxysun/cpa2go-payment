@@ -3,6 +3,7 @@ import { CorsHttpMethod } from '@aws-cdk/aws-apigatewayv2';
 
 type DBProps = {
   subscription: sst.Table;
+  subscriber: sst.Table;
 }
 
 export type ApiStackProps = sst.StackProps & {
@@ -14,12 +15,13 @@ export default class ApiStack extends sst.Stack {
     super(scope, id, props);
     
     const { db }: ApiStackProps = props;
-    const { subscription }: DBProps = db;
+    const { subscription, subscriber }: DBProps = db;
     // Create a HTTP API
     const api = new sst.Api(this, 'MainApi', {
       defaultFunctionProps: {
         environment: {
           SUBSCRIPTION_TABLE_NAME: subscription.tableName,
+          SUBSCRIBER_TABLE_NAME: subscriber.tableName
         },
       },
       cors: {
@@ -28,11 +30,12 @@ export default class ApiStack extends sst.Stack {
       routes: {
         'ANY /rest/subscription': 'src/handler.subscriptionHandler',
         'ANY /rest/subscription/{id}': 'src/handler.subscriptionHandler',
+        'POST /rest/subscriber/begin-subscription/{email}': 'src/handler.beginSubscription'
       },
     });
 
     // Add DB permission
-    api.attachPermissions([db.subscription]);
+    api.attachPermissions([db.subscription, db.subscriber]);
 
     // Show the endpoint in the output
     this.addOutputs({
