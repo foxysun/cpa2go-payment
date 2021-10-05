@@ -6,7 +6,7 @@ export const userProxyHandler: APIGatewayProxyHandlerV2 = async (
   event: APIGatewayProxyEventV2
 ) => {
   const userController: UserProxyController = new UserProxyController();
-  const data = await userController.list();
+  const data = await userController.increaseQuestion('226', 100);
 
   return success(data.data);
 };

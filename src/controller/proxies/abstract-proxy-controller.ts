@@ -9,7 +9,7 @@ abstract class AbstractProxyController {
     this.path = path;
     this.baseUrl = process.env.PHP_API_SERVER || 'https://cpa2go.com';
     this.http = Axios.create({
-      baseURL: this.baseUrl,
+      baseURL: `${this.baseUrl}/${this.path}`,
       headers: {
         apikey: process.env.API_KEY_MIDDLE as string
       }
