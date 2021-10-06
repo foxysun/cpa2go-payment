@@ -2,6 +2,7 @@ import { APIGatewayProxyResultV2 } from 'aws-lambda';
 import { AWSError, DynamoDB } from 'aws-sdk';
 import { PromiseResult } from 'aws-sdk/lib/request';
 import { get as _get, isEmpty as _isEmpty, keys as _keys, map as _map } from 'lodash';
+import IReceiptData from '../types/iap/receipt-data';
 import { failure, success } from '../utils/http-response';
 import AbstractController from './abstract-controller';
 
@@ -66,12 +67,50 @@ class SubscriberController extends AbstractController {
     return _get(results, 'Attributes', {});
   }
 
+  private async recordTheNewSubscription(userId: string, receiptData: IReceiptData): Promise<void> {
+    const biller: string = _get(this.body, 'biller', '');
+    let receiptId: string = _get(receiptData, 'receiptData', '');
+
+    if (biller.toLowerCase() === 'android') {
+      // handle IOS
+      receiptId = _get(receiptData, 'purchaseToken', '');
+    }
+
+    const params: DynamoDB.DocumentClient.PutItemInput = {
+      TableName: process.env.SUBSCRIPTION_TABLE_NAME as string,
+      Item: {
+        receiptId,
+        userId,
+        biller,
+        status: 'SUBSCRIPTION_PURCHASED',
+        createdBy: 'App',
+        updatedBy: 'App',
+        receiptData,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      }
+    };
+
+    console.log('Putting to DB', params);
+
+    await this.dynamoDB.put(params).promise();
+  }
+
   private async insertToDB(): Promise<APIGatewayProxyResultV2> {
     const userId: string = _get(this.pathParameters, 'userId', '');
     const currentItem = await this.getSubscriber(userId);
 
     if (_isEmpty(currentItem)) {
       const item = await this.putToDB(userId);
+      // Put to subscription table
+      const receipt: string = _get(this.body, 'receipt', '');
+
+      if (_isEmpty(receipt) === false) {
+        console.log('Receving this with Receipt', receipt);
+        const receiptData: IReceiptData = JSON.parse(receipt);
+        await this.recordTheNewSubscription(userId, receiptData);
+      }
+
       return success(item);
     }
 
