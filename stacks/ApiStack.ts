@@ -23,7 +23,8 @@ export default class ApiStack extends sst.Stack {
           SUBSCRIPTION_TABLE_NAME: subscription.tableName,
           SUBSCRIBER_TABLE_NAME: subscriber.tableName,
           API_KEY_MIDDLE: process.env.API_KEY_MIDDLE,
-          PHP_API_SERVER: process.env.PHP_API_SERVER
+          PHP_API_SERVER: process.env.PHP_API_SERVER,
+          APPLE_SECRET: process.env.APPLE_SECRET
         },
       },
       cors: {

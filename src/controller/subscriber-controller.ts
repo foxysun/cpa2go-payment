@@ -2,6 +2,8 @@ import { APIGatewayProxyResultV2 } from 'aws-lambda';
 import { AWSError, DynamoDB } from 'aws-sdk';
 import { PromiseResult } from 'aws-sdk/lib/request';
 import { get as _get, isEmpty as _isEmpty, keys as _keys, map as _map } from 'lodash';
+import { verifyReceipt } from '../service/apple-service';
+import IAppleVerifyResponse from '../types/iap/apple-response';
 import IReceiptData from '../types/iap/receipt-data';
 import { failure, success } from '../utils/http-response';
 import AbstractController from './abstract-controller';
@@ -69,11 +71,12 @@ class SubscriberController extends AbstractController {
 
   private async recordTheNewSubscription(userId: string, receiptData: IReceiptData): Promise<void> {
     const biller: string = _get(this.body, 'biller', '');
-    let receiptId: string = _get(receiptData, 'receiptData', '');
+    let receiptId: string = _get(receiptData, 'purchaseToken', '');
 
-    if (biller.toLowerCase() === 'android') {
+    if (biller.toLowerCase() === 'ios') {
       // handle IOS
-      receiptId = _get(receiptData, 'purchaseToken', '');
+      const validator: IAppleVerifyResponse | unknown = await verifyReceipt(_get(receiptData, 'receiptData', ''));
+      receiptId = _get(validator, 'latest_receipt_info[0].original_transaction_id', '');
     }
 
     const params: DynamoDB.DocumentClient.PutItemInput = {
@@ -107,8 +110,23 @@ class SubscriberController extends AbstractController {
 
       if (_isEmpty(receipt) === false) {
         console.log('Receving this with Receipt', receipt);
-        const receiptData: IReceiptData = JSON.parse(receipt);
-        await this.recordTheNewSubscription(userId, receiptData);
+        let receiptData: IReceiptData = {
+          receiptData: receipt
+        };
+
+        try {
+          // If this is Android receipt
+          receiptData = JSON.parse(receipt);
+        } catch (e: unknown) {
+          console.log('This is an Apple Receipt', receiptData);
+        }
+
+        try {
+          await this.recordTheNewSubscription(userId, receiptData);
+        } catch (e: unknown) {
+          console.log('Error when passing Data to subscription table', e);
+        }
+        
       }
 
       return success(item);
