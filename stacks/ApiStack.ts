@@ -34,6 +34,7 @@ export default class ApiStack extends sst.Stack {
         'ANY /rest/subscription': 'src/handler.subscriptionHandler',
         'ANY /rest/subscription/{id}': 'src/handler.subscriptionHandler',
         'POST /rest/subscriber/begin-subscription/{userId}': 'src/handler.beginSubscription',
+        'GET /rest/subscriber/check-subscription': 'src/handler.checkSubscription',
         'GET /proxy/user': 'src/handler.userProxyHandler'
       },
     });

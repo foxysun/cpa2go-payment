@@ -1,10 +1,12 @@
-import { APIGatewayProxyResultV2 } from 'aws-lambda';
+import { APIGatewayProxyResult, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { AWSError, DynamoDB } from 'aws-sdk';
 import { PromiseResult } from 'aws-sdk/lib/request';
 import { get as _get, isEmpty as _isEmpty, keys as _keys, map as _map } from 'lodash';
 import { verifyReceipt } from '../service/apple-service';
+import ISubscriberModel from '../types/db/subscriber-model';
 import IAppleVerifyResponse from '../types/iap/apple-response';
 import IReceiptData from '../types/iap/receipt-data';
+import IUser from '../types/proxy/user';
 import { failure, success } from '../utils/http-response';
 import AbstractController from './abstract-controller';
 
@@ -15,7 +17,7 @@ class SubscriberController extends AbstractController {
     return success({ db: process.env.SUBSCRIPTION_TABLE_NAME });
   }
 
-  private async getSubscriber(userId: string): Promise<DynamoDB.DocumentClient.GetItemOutput> {
+  private async getSubscriber(userId: string): Promise<ISubscriberModel> {
     const params: DynamoDB.DocumentClient.GetItemInput = {
       TableName: process.env.SUBSCRIBER_TABLE_NAME as string,
       Key: {
@@ -24,7 +26,7 @@ class SubscriberController extends AbstractController {
     };
     const result: PromiseResult<DynamoDB.DocumentClient.GetItemOutput, AWSError> = await this.dynamoDB.get(params).promise();
     
-    return _get(result, 'Item', {});
+    return _get(result, 'Item', {}) as ISubscriberModel;
   }
 
   private async putToDB(userId: string): Promise<DynamoDB.DocumentClient.PutItemOutput> {
@@ -103,31 +105,31 @@ class SubscriberController extends AbstractController {
     const userId: string = _get(this.pathParameters, 'userId', '');
     const currentItem = await this.getSubscriber(userId);
 
+    // Put to subscription table
+    const receipt: string = _get(this.body, 'receipt', '');
+
+    if (_isEmpty(receipt) === false) {
+      console.log('Receving this with Receipt', receipt);
+      let receiptData: IReceiptData = {
+        receiptData: receipt
+      };
+
+      try {
+        // If this is Android receipt
+        receiptData = JSON.parse(receipt);
+      } catch (e: unknown) {
+        console.log('This is an Apple Receipt', receiptData);
+      }
+
+      try {
+        await this.recordTheNewSubscription(userId, receiptData);
+      } catch (e: unknown) {
+        console.log('Error when passing Data to subscription table', e);
+      }
+    }
+
     if (_isEmpty(currentItem)) {
       const item = await this.putToDB(userId);
-      // Put to subscription table
-      const receipt: string = _get(this.body, 'receipt', '');
-
-      if (_isEmpty(receipt) === false) {
-        console.log('Receving this with Receipt', receipt);
-        let receiptData: IReceiptData = {
-          receiptData: receipt
-        };
-
-        try {
-          // If this is Android receipt
-          receiptData = JSON.parse(receipt);
-        } catch (e: unknown) {
-          console.log('This is an Apple Receipt', receiptData);
-        }
-
-        try {
-          await this.recordTheNewSubscription(userId, receiptData);
-        } catch (e: unknown) {
-          console.log('Error when passing Data to subscription table', e);
-        }
-        
-      }
 
       return success(item);
     }
@@ -144,6 +146,22 @@ class SubscriberController extends AbstractController {
     }
 
     return this.insertToDB();
+  }
+
+  public async getSubscriberInfoExisting(): Promise<APIGatewayProxyResultV2> {
+    const userId: string = _get(this.queryStringParameters, 'userId', '');
+    
+    if (_isEmpty(userId) === true) {
+      return failure({ message: 'Invalid input' }, 400);
+    }
+
+    const user: ISubscriberModel = await this.getSubscriber(userId);
+
+    if (_isEmpty(user) === true) {
+      return success({ isSubscriber: false });
+    }
+
+    return success({ isSubscriber: true, biller: user.biller });
   }
 }
 

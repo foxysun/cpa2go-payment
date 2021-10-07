@@ -7,3 +7,10 @@ export const beginSubscription: APIGatewayProxyHandlerV2 = async (
   const subscriberController: SubscriberController = new SubscriberController(event);
   return subscriberController.beginSubscription();
 };
+
+export const checkSubscription: APIGatewayProxyHandlerV2 = async (
+  event: APIGatewayProxyEventV2
+) => {
+  const subscriberController: SubscriberController = new SubscriberController(event);
+  return subscriberController.getSubscriberInfoExisting();
+};
