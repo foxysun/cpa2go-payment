@@ -1,4 +1,4 @@
-import { APIGatewayProxyResult, APIGatewayProxyResultV2 } from 'aws-lambda';
+import { APIGatewayProxyResultV2 } from 'aws-lambda';
 import { AWSError, DynamoDB } from 'aws-sdk';
 import { PromiseResult } from 'aws-sdk/lib/request';
 import { get as _get, isEmpty as _isEmpty, keys as _keys, map as _map } from 'lodash';
@@ -6,7 +6,6 @@ import { verifyReceipt } from '../service/apple-service';
 import ISubscriberModel from '../types/db/subscriber-model';
 import IAppleVerifyResponse from '../types/iap/apple-response';
 import IReceiptData from '../types/iap/receipt-data';
-import IUser from '../types/proxy/user';
 import { failure, success } from '../utils/http-response';
 import AbstractController from './abstract-controller';
 

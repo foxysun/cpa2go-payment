@@ -1,10 +1,10 @@
 import { subscriptionHandler } from './handler/subscription-handler';
 import { beginSubscription, checkSubscription } from './handler/subscriber-handler';
-import { userProxyHandler } from './handler/proxy-handler';
+import { webhookHandler } from './handler/webhook-handler';
 
 export {
   subscriptionHandler,
   beginSubscription,
-  userProxyHandler,
-  checkSubscription
+  checkSubscription,
+  webhookHandler
 };

@@ -24,7 +24,8 @@ export default class ApiStack extends sst.Stack {
           SUBSCRIBER_TABLE_NAME: subscriber.tableName,
           API_KEY_MIDDLE: process.env.API_KEY_MIDDLE,
           PHP_API_SERVER: process.env.PHP_API_SERVER,
-          APPLE_SECRET: process.env.APPLE_SECRET
+          APPLE_SECRET: process.env.APPLE_SECRET,
+          GOOGLE_PUB_SUB_SECRET: process.env.GOOGLE_PUB_SUB_SECRET
         },
       },
       cors: {
@@ -35,7 +36,7 @@ export default class ApiStack extends sst.Stack {
         'ANY /rest/subscription/{id}': 'src/handler.subscriptionHandler',
         'POST /rest/subscriber/begin-subscription/{userId}': 'src/handler.beginSubscription',
         'GET /rest/subscriber/check-subscription': 'src/handler.checkSubscription',
-        'GET /proxy/user': 'src/handler.userProxyHandler'
+        'POST /webhook/iap': 'src/handler.webhookHandler'
       },
     });
 

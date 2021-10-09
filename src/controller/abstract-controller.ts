@@ -34,7 +34,7 @@ abstract class AbstractController {
   private eventParser(): EventPraser {
     return (
       {
-        method: _get(this.event, 'httpMethod'),
+        method: _get(this.event, 'httpMethod', _get(this.event, 'requestContext.http.method', '')),
         queryStringParameters: _get(this.event, 'queryStringParameters', {}),
         body: JSON.parse(_get(this.event, 'body', '{}')),
         pathParameters: _get(this.event, 'pathParameters', {})
